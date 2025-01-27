@@ -1,47 +1,97 @@
 #include <iostream>
+#include <algorithm>
+#include <memory>
 
 class LinkedList {
     struct Node {
         int _data{-1};
-        Node* _next{nullptr};
+        std::unique_ptr<Node> _next{nullptr};
     };
 
-    Node* _start{nullptr};
+    std::unique_ptr<Node> _start{nullptr};
 
 public:
-    virtual ~LinkedList() {
-        auto node = _start;
+    class iterator {
+        Node* _node{nullptr};
+        int _index{-1};
 
-        while (node != nullptr) {
-            auto temp = node;
-            std::cout << "Deleting: " << temp->_data << std::endl;
-            node = node->_next;
-            delete temp;
+    public:
+        explicit iterator(Node* node) : _node(node) {
         }
-    }
+
+        int operator*() const { return _node->_data; }
+
+        iterator& operator++() {
+            _node = _node->_next;
+            _index++;
+            return *this;
+        }
+
+        bool operator!=(iterator it) const { return _node != it._node; }
+    };
+
+    iterator begin() { return iterator(_start.get()); }
+    iterator end() { return iterator(nullptr); }
 
     void add(int value) {
-        auto new_node = new Node({value});
+        //auto new_node = new Node({value});
+        auto new_node = std::make_unique<Node>(new_node);
 
         // is this the first node?
         if (_start == nullptr) {
             // yes! we are the first node!
-            _start = new_node;
+            _start = std::move(new_node);
         }
         else {
             // no, we have to find the end...
             auto prev = (Node*)nullptr;
-            auto node = _start;
+            auto node = _start.get();
 
             // now move the pointers through the chain
             while (node != nullptr) {
                 prev = node;
-                node = node->_next;
+                node = node->_next.get();
             }
 
             // did we find the end of the chain?
             if (prev != nullptr) {
                 // yes! attach new node to the end of the chain
+                prev->_next = std::move(new_node);
+            }
+        }
+    }
+
+    ///
+    /// @param value the data to be inserted
+    /// @param after_value the value of the node to insert before
+    void insert(int value, int after_value) {
+        auto new_node = new Node({value});
+
+        auto node = _start.get();
+        auto prev = (Node*)nullptr;
+
+        // find the node to insert before
+        while (node != nullptr) {
+            // look for the desired node
+            if (node->_data == after_value) {
+                // found the node!
+                break;
+            }
+            prev = node;
+            node = node->_next.get();
+        }
+
+        // did we find the node we were looking for?
+        if (node != nullptr) {
+            // is this the first node?
+            if (prev == nullptr) {
+                // yes, inserting at the start
+                new_node->_next = std::move(_start);
+                _start = std::move(new_node);
+            }
+            else {
+                // no, inserting in the middle
+                new_node->_next = prev->_next;
                 prev->_next = new_node;
             }
         }
@@ -130,6 +180,46 @@ int main() {
         list.remove(1);
 
         std::cout << list << std::endl;
+
+        std::cout << "Test 5: insert a node in the middle" << std::endl;
+        std::cout << "-----------------------------------" << std::endl;
+
+        // insert the value 99 before a node that contains the value 4
+        list.insert(99, 4);
+
+        std::cout << list << std::endl;
+
+        std::cout << "Test 6: insert a node at the start" << std::endl;
+        std::cout << "----------------------------------" << std::endl;
+
+        // insert the value 0 before a node that contains the value 2
+        list.insert(0, 2);
+
+        std::cout << list << std::endl;
+
+        std::cout << "Test 7: use an iterator to list the nodes" << std::endl;
+        std::cout << "-----------------------------------------" << std::endl;
+
+        for (auto i = list.begin(); i != list.end(); ++i) {
+            std::cout << *i << " ";
+        }
+        std::cout << std::endl;
+
+        std::cout << "Test 8: use a for..each to list the nodes" << std::endl;
+        std::cout << "-----------------------------------------" << std::endl;
+
+        std::for_each(list.begin(), list.end(), [](int n) {
+            std::cout << n << " ";
+        });
+        std::cout << std::endl;
+
+        std::cout << "Test 9: use the ranged for loop to list the nodes" << std::endl;
+        std::cout << "-------------------------------------------------" << std::endl;
+
+        for (const auto n : list) {
+            std::cout << n << " ";
+        }
+        std::cout << std::endl;
     }
 
     std::cout << "All the nodes should now be deleted." << std::endl;
