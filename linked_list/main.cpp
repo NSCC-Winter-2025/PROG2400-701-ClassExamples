@@ -4,16 +4,20 @@
 
 class LinkedList {
     struct Node {
-        int _data{-1};
-        std::unique_ptr<Node> _next{nullptr};
+        int _data {-1};
+        std::unique_ptr<Node> _next {nullptr};
+
+        ~Node() {
+            std::cout << "deleting: " << _data << std::endl;
+        }
     };
 
-    std::unique_ptr<Node> _start{nullptr};
+    std::unique_ptr<Node> _start {nullptr};
 
 public:
     class iterator {
-        Node* _node{nullptr};
-        int _index{-1};
+        Node* _node {nullptr};
+        int _index {-1};
 
     public:
         explicit iterator(Node* node) : _node(node) {
@@ -22,7 +26,7 @@ public:
         int operator*() const { return _node->_data; }
 
         iterator& operator++() {
-            _node = _node->_next;
+            _node = _node->_next.get();
             _index++;
             return *this;
         }
@@ -35,14 +39,13 @@ public:
 
     void add(int value) {
         //auto new_node = new Node({value});
-        auto new_node = std::make_unique<Node>(new_node);
+        auto new_node = std::make_unique<Node>(value);
 
         // is this the first node?
         if (_start == nullptr) {
             // yes! we are the first node!
             _start = std::move(new_node);
-        }
-        else {
+        } else {
             // no, we have to find the end...
             auto prev = (Node*)nullptr;
             auto node = _start.get();
@@ -65,7 +68,7 @@ public:
     /// @param value the data to be inserted
     /// @param after_value the value of the node to insert before
     void insert(int value, int after_value) {
-        auto new_node = new Node({value});
+        auto new_node = std::make_unique<Node>(value);
 
         auto node = _start.get();
         auto prev = (Node*)nullptr;
@@ -88,18 +91,17 @@ public:
                 // yes, inserting at the start
                 new_node->_next = std::move(_start);
                 _start = std::move(new_node);
-            }
-            else {
+            } else {
                 // no, inserting in the middle
-                new_node->_next = prev->_next;
-                prev->_next = new_node;
+                new_node->_next = std::move(prev->_next);
+                prev->_next = std::move(new_node);
             }
         }
     }
 
     void remove(int value) {
         auto prev = (Node*)nullptr;
-        auto node = _start;
+        auto node = _start.get();
 
         // find the node to delete
         while (node != nullptr) {
@@ -109,7 +111,7 @@ public:
                 break;
             }
             prev = node;
-            node = node->_next;
+            node = node->_next.get();
         }
 
         // if the node was found, delete it
@@ -117,14 +119,11 @@ public:
             // are we deleting the first node?
             if (prev == nullptr) {
                 // yes!
-                _start = node->_next;
-            }
-            else {
+                _start = std::move(node->_next);
+            } else {
                 // no, just another node
-                prev->_next = node->_next;
+                prev->_next = std::move(node->_next);
             }
-
-            delete node;
         }
     }
 
@@ -132,13 +131,12 @@ public:
 };
 
 std::ostream& operator<<(std::ostream& output, const LinkedList& list) {
-    auto node = list._start;
+    auto node = list._start.get();
 
     while (node != nullptr) {
         output << node->_data << " ";
-        node = node->_next;
+        node = node->_next.get();
     }
-
     return output;
 }
 
