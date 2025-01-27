@@ -31,11 +31,11 @@ public:
             return *this;
         }
 
-        bool operator!=(iterator it) const { return _node != it._node; }
+        bool operator!=(const iterator it) const { return _node != it._node; }
     };
 
-    iterator begin() { return iterator(_start.get()); }
-    iterator end() { return iterator(nullptr); }
+    [[nodiscard]] iterator begin() const { return iterator(_start.get()); }
+    [[nodiscard]] iterator end() { return iterator(nullptr); }
 
     void add(int value) {
         //auto new_node = new Node({value});
@@ -47,7 +47,7 @@ public:
             _start = std::move(new_node);
         } else {
             // no, we have to find the end...
-            auto prev = (Node*)nullptr;
+            auto prev = static_cast<Node*>(nullptr);
             auto node = _start.get();
 
             // now move the pointers through the chain
@@ -67,11 +67,11 @@ public:
     ///
     /// @param value the data to be inserted
     /// @param after_value the value of the node to insert before
-    void insert(int value, int after_value) {
+    void insert(int value, const int after_value) {
         auto new_node = std::make_unique<Node>(value);
 
         auto node = _start.get();
-        auto prev = (Node*)nullptr;
+        auto prev = static_cast<Node*>(nullptr);
 
         // find the node to insert before
         while (node != nullptr) {
@@ -99,8 +99,8 @@ public:
         }
     }
 
-    void remove(int value) {
-        auto prev = (Node*)nullptr;
+    void remove(const int value) {
+        auto prev = static_cast<Node*>(nullptr);
         auto node = _start.get();
 
         // find the node to delete
