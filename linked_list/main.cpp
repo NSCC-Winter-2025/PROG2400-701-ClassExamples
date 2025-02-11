@@ -127,6 +127,34 @@ public:
         }
     }
 
+    void erase(const iterator it) {
+        auto prev = static_cast<Node*>(nullptr);
+        auto node = _start.get();
+
+        // find the node to delete
+        while (node != nullptr) {
+            // find the node based on its value
+            if (node->_data == *it) {
+                // we found the node we want to delete
+                break;
+            }
+            prev = node;
+            node = node->_next.get();
+        }
+
+        // if the node was found, delete it
+        if (node != nullptr) {
+            // are we deleting the first node?
+            if (prev == nullptr) {
+                // yes!
+                _start = std::move(node->_next);
+            } else {
+                // no, just another node
+                prev->_next = std::move(node->_next);
+            }
+        }
+    }
+
     friend std::ostream& operator<<(std::ostream& output, const LinkedList& list);
 };
 
