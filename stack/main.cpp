@@ -1,6 +1,7 @@
 #include <iostream>
 #include <memory>
 #include <optional>
+#include <vector>
 
 struct Data {
     int _num {0};
@@ -15,38 +16,46 @@ std::ostream& operator<<(std::ostream& os, const Data& data) {
 }
 
 class Stack {
-    struct Node {
-        Data _data;
-        std::unique_ptr<Node> _next {nullptr};
-    };
-
-    std::unique_ptr<Node> _top {nullptr};
+    // struct Node {
+    //     Data _data;
+    //     std::unique_ptr<Node> _next {nullptr};
+    // };
+    //
+    // std::unique_ptr<Node> _top {nullptr};
+    std::vector<Data> _data;
 
 public:
     void push(const Data& data) {
-        auto node = std::make_unique<Node>(data);
-        node->_next = std::move(_top);
-        _top = std::move(node);
+        // auto node = std::make_unique<Node>(data);
+        // node->_next = std::move(_top);
+        // _top = std::move(node);
+        _data.push_back(data);
     }
 
     [[nodiscard]] std::optional<Data> top() const {
-        if (_top == nullptr) return std::nullopt;
-        return std::make_optional(_top->_data);
+        // if (_top == nullptr) return std::nullopt;
+        // return std::make_optional(_top->_data);
+        if (_data.empty()) return std::nullopt;
+        return _data.back();
     }
 
     void pop() {
-        if (_top == nullptr) return;
-        _top = std::move(_top->_next);
+        // if (_top == nullptr) return;
+        // _top = std::move(_top->_next);
+        _data.pop_back();
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Stack& stack);
 };
 
 std::ostream& operator<<(std::ostream& os, const Stack& stack) {
-    auto node = stack._top.get();
-    while (node != nullptr) {
-        os << node->_data << std::endl;
-        node = node->_next.get();
+    // auto node = stack._top.get();
+    // while (node != nullptr) {
+    //     os << node->_data << std::endl;
+    //     node = node->_next.get();
+    // }
+    for (const auto& data : stack._data) {
+        os << data << std::endl;
     }
     return os;
 }
